@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,7 +27,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> post(@Valid @RequestBody UserRequest userRequest) {
+    public ResponseEntity<?> save(@Valid @RequestBody UserRequest userRequest) {
         if (this.userRepository.existsByEmail(userRequest.getEmail())) {
 
             return ResponseEntity
@@ -48,12 +49,25 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<Set<UserDTO>> get() {
+    public ResponseEntity<Set<UserDTO>> findAll() {
         Set<UserDTO> users = this.userRepository.findAll()
                 .stream()
                 .map(user -> this.modelMapper.map(user, UserDTO.class))
                 .collect(Collectors.toSet());
 
         return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<?> findById(@PathVariable(name = "id") Long id) {
+        Optional<User> user = this.userRepository.findById(id);
+
+        if (!user.isPresent()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse("Usuário não existe"));
+        }
+
+        return ResponseEntity.ok(this.modelMapper.map(user.get(), UserDTO.class));
     }
 }
