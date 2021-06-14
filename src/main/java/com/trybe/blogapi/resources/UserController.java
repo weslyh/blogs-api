@@ -26,7 +26,6 @@ public class UserController {
     private ModelMapper modelMapper = new ModelMapper();
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> save(@Valid @RequestBody UserRequest userRequest) {
         if (this.userRepository.existsByEmail(userRequest.getEmail())) {
 
