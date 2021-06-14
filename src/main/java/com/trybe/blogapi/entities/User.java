@@ -23,5 +23,5 @@ public class User {
     private String image;
 
     @OneToMany(mappedBy = "user")
-    private Set<Post> posts;
+    private Set<BlogPost> blogPosts;
 }

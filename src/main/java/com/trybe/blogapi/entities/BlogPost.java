@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "Posts")
 @NoArgsConstructor
 @Data
-public class Post {
+public class BlogPost {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
