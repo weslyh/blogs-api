@@ -10,13 +10,14 @@ import com.trybe.blogapi.repositories.BlogPostRepository;
 import com.trybe.blogapi.repositories.UserRepository;
 import com.trybe.blogapi.services.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/post")
@@ -48,5 +49,17 @@ public class PostController {
         } else {
             throw new RuntimeException("Token expirado !");
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BlogPostDTO>> findAll(@RequestHeader String authorization) {
+        jwtService.validaToken(authorization);
+
+        List<BlogPostDTO> blogs = this.blogPostRepository.findAll()
+                .stream()
+                .map(BlogPost::toDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(blogs);
     }
 }

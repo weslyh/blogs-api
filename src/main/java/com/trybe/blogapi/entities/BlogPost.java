@@ -1,5 +1,7 @@
 package com.trybe.blogapi.entities;
 
+import com.trybe.blogapi.entities.dtos.BlogPostDTO;
+import com.trybe.blogapi.entities.dtos.UserDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -37,5 +39,17 @@ public class BlogPost {
     @PreUpdate
     public void preUpdate() {
         this.updated = LocalDateTime.now();
+    }
+
+    public BlogPostDTO toDTO() {
+        BlogPostDTO blogPostDTO = new BlogPostDTO();
+        blogPostDTO.setId(this.id);
+        blogPostDTO.setTitle(this.title);
+        blogPostDTO.setContent(this.content);
+        blogPostDTO.setPublished(this.published);
+        blogPostDTO.setUpdated(this.updated);
+        blogPostDTO.setUserDTO(new UserDTO(this.user.getId(), this.user.getDisplayName(), this.user.getEmail(), this.user.getImage()));
+
+        return blogPostDTO;
     }
 }
