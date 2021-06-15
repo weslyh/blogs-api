@@ -12,6 +12,11 @@ import java.time.LocalDateTime;
 @Data
 public class BlogPost {
 
+    public BlogPost(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
