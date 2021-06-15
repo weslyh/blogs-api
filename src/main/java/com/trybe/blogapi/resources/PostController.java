@@ -62,4 +62,14 @@ public class PostController {
 
         return ResponseEntity.ok(blogs);
     }
+
+    @GetMapping("{id}")
+    public ResponseEntity<BlogPostDTO> findById(@PathVariable(name = "id") Long id, @RequestHeader String authorization) {
+        this.jwtService.validaToken(authorization);
+
+        return this.blogPostRepository.findById(id)
+                .map(BlogPost::toDTO)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new RuntimeException("Not Found"));
+    }
 }
