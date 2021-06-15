@@ -1,5 +1,6 @@
 package com.trybe.blogapi.resources;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.trybe.blogapi.entities.User;
 import com.trybe.blogapi.entities.dtos.UserDTO;
 import com.trybe.blogapi.entities.requests.UserRequest;
@@ -16,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -73,14 +73,17 @@ public class UserController {
     public ResponseEntity<?> findById(@PathVariable(name = "id") Long id, @RequestHeader String authorization) {
         this.jwtService.validaToken(authorization);
 
-        Optional<User> user = this.userRepository.findById(id);
+        return this.userRepository.findById(id)
+                .map(user -> ResponseEntity.ok(this.modelMapper.map(user, UserDTO.class)))
+                .orElseThrow(() -> new RuntimeException(""));
+    }
 
-        if (!user.isPresent()) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponse("Usuário não existe"));
-        }
+    @DeleteMapping("me")
+    public ResponseEntity<?> delete(@RequestHeader String authorization) {
+        DecodedJWT jwt = this.jwtService.decodeToken(authorization);
+        String emailUsuarioAutenticado = jwt.getClaim("email").asString();
+        this.userRepository.deleteByEmail(emailUsuarioAutenticado);
 
-        return ResponseEntity.ok(this.modelMapper.map(user.get(), UserDTO.class));
+        return ResponseEntity.noContent().build();
     }
 }

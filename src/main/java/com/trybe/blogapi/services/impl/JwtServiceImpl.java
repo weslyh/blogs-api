@@ -30,7 +30,7 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public boolean validaToken(String token) {
         if (token == null || token.isEmpty())
-            throw new RuntimeException("");
+            throw new RuntimeException("Token não encontrado");
 
         decodeToken(token);
 
@@ -39,6 +39,9 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public DecodedJWT decodeToken(String token) {
+        if (token == null || token.isEmpty())
+            throw new RuntimeException("Token não encontrado");
+
         try {
             Algorithm algorithm = Algorithm.HMAC256(key);
             JWTVerifier verifier = JWT.require(algorithm)
