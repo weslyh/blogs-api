@@ -8,9 +8,11 @@ import com.trybe.blogapi.entities.responses.TokenResponse;
 import com.trybe.blogapi.repositories.UserRepository;
 import com.trybe.blogapi.services.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -21,10 +23,12 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
+@Log4j2
 public class UserController {
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     private ModelMapper modelMapper = new ModelMapper();
 
@@ -38,6 +42,9 @@ public class UserController {
         }
 
         User user = this.modelMapper.map(userRequest, User.class);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        log.info("Password generated {}", user.getPassword());
 
         if (this.userRepository.save(user) != null) {
             return ResponseEntity
@@ -63,7 +70,9 @@ public class UserController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<?> findById(@PathVariable(name = "id") Long id) {
+    public ResponseEntity<?> findById(@PathVariable(name = "id") Long id, @RequestHeader String authorization) {
+        this.jwtService.validaToken(authorization);
+
         Optional<User> user = this.userRepository.findById(id);
 
         if (!user.isPresent()) {
