@@ -6,6 +6,7 @@ import com.trybe.blogapi.entities.requests.UserRequest;
 import com.trybe.blogapi.entities.responses.ErrorResponse;
 import com.trybe.blogapi.entities.responses.TokenResponse;
 import com.trybe.blogapi.repositories.UserRepository;
+import com.trybe.blogapi.services.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final JwtService jwtService;
+
     private ModelMapper modelMapper = new ModelMapper();
 
     @PostMapping
@@ -39,7 +42,7 @@ public class UserController {
         if (this.userRepository.save(user) != null) {
             return ResponseEntity
                     .status(HttpStatus.CREATED)
-                    .body(new TokenResponse());
+                    .body(new TokenResponse(this.jwtService.geraToken(user.getEmail())));
         } else {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -48,7 +51,9 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<Set<UserDTO>> findAll() {
+    public ResponseEntity<Set<UserDTO>> findAll(@RequestHeader String authorization) {
+        this.jwtService.validaToken(authorization);
+
         Set<UserDTO> users = this.userRepository.findAll()
                 .stream()
                 .map(user -> this.modelMapper.map(user, UserDTO.class))

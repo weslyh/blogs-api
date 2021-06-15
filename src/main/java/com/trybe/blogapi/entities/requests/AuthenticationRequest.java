@@ -8,11 +8,10 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
-public class LoginRequest implements Serializable {
+public class AuthenticationRequest {
 
     @NotNull(message = "\"email\" is required")
     @NotEmpty(message = "\"email\" is not allowed to be empty")
