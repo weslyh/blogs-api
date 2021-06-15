@@ -25,7 +25,7 @@ public class BlogPost {
     private LocalDateTime published;
     private LocalDateTime updated;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "userId")
     private User user;
 
