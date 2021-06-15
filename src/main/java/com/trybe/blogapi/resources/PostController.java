@@ -1,5 +1,6 @@
 package com.trybe.blogapi.resources;
 
+import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.trybe.blogapi.entities.BlogPost;
 import com.trybe.blogapi.entities.User;
@@ -71,5 +72,28 @@ public class PostController {
                 .map(BlogPost::toDTO)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new RuntimeException("Not Found"));
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<BlogPostDTO> atualizaPost(@PathVariable(name = "id") Long id,
+                                                    @RequestBody BlogPostRequest blogPostRequest,
+                                                    @RequestHeader String authorization) {
+        DecodedJWT jwt = this.jwtService.decodeToken(authorization);
+        String email = jwt.getClaim("email").asString();
+
+        Optional<BlogPost> blogPost = this.blogPostRepository.findById(id);
+
+        if (blogPost.isPresent()) {
+            if (!blogPost.get().getUser().getEmail().equals(email)) {
+                throw new RuntimeException("Usuário não tem permissão para editar o post.");
+            } else {
+                blogPost.get().setTitle(blogPostRequest.getTitle());
+                blogPost.get().setContent(blogPostRequest.getContent());
+
+                return ResponseEntity.ok(this.blogPostRepository.save(blogPost.get()).toDTO());
+            }
+        } else {
+            throw new RuntimeException("Blog post não existe !");
+        }
     }
 }
