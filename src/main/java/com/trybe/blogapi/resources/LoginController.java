@@ -1,20 +1,15 @@
 package com.trybe.blogapi.resources;
 
-import com.trybe.blogapi.entities.User;
 import com.trybe.blogapi.entities.requests.AuthenticationRequest;
 import com.trybe.blogapi.entities.responses.TokenResponse;
+import com.trybe.blogapi.exceptions.LoginException;
 import com.trybe.blogapi.repositories.UserRepository;
 import com.trybe.blogapi.services.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -29,11 +24,12 @@ public class LoginController {
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping
-    public ResponseEntity<TokenResponse> login(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
+    @ResponseStatus(HttpStatus.OK)
+    public TokenResponse login(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
         return this.userRepository
                 .findByEmail(authenticationRequest.getEmail())
                 .filter(user -> this.passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword()))
-                .map(user -> ResponseEntity.ok(new TokenResponse(this.jwtService.geraToken(user.getEmail()))))
-                .orElseThrow(() -> new RuntimeException("Campos Inválidos !"));
+                .map(user -> new TokenResponse(this.jwtService.geraToken(user.getEmail())))
+                .orElseThrow(() -> new LoginException("Campos Inválidos !"));
     }
 }

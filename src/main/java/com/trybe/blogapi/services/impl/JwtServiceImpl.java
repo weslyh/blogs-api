@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.trybe.blogapi.exceptions.TokenException;
 import com.trybe.blogapi.services.JwtService;
 import org.springframework.stereotype.Service;
 
@@ -29,17 +30,11 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public void validaToken(String token) {
-        if (token == null || token.isEmpty())
-            throw new RuntimeException("Token não encontrado");
-
         decodeToken(token);
     }
 
     @Override
     public DecodedJWT decodeToken(String token) {
-        if (token == null || token.isEmpty())
-            throw new RuntimeException("Token não encontrado");
-
         try {
             Algorithm algorithm = Algorithm.HMAC256(key);
             JWTVerifier verifier = JWT.require(algorithm)
@@ -48,7 +43,7 @@ public class JwtServiceImpl implements JwtService {
 
             return verifier.verify(token);
         } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Token Invalido");
+            throw new TokenException("Token expirado ou inválido");
         }
     }
 

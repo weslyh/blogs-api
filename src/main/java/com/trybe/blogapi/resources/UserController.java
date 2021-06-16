@@ -1,18 +1,17 @@
 package com.trybe.blogapi.resources;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.trybe.blogapi.entities.User;
 import com.trybe.blogapi.entities.dtos.UserDTO;
 import com.trybe.blogapi.entities.requests.UserRequest;
-import com.trybe.blogapi.entities.responses.ErrorResponse;
 import com.trybe.blogapi.entities.responses.TokenResponse;
+import com.trybe.blogapi.exceptions.NotFoundException;
+import com.trybe.blogapi.exceptions.UsuarioJaExisteException;
 import com.trybe.blogapi.repositories.UserRepository;
 import com.trybe.blogapi.services.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,57 +32,45 @@ public class UserController {
     private ModelMapper modelMapper = new ModelMapper();
 
     @PostMapping
-    public ResponseEntity<?> save(@Valid @RequestBody UserRequest userRequest) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public TokenResponse save(@Valid @RequestBody UserRequest userRequest) {
         if (this.userRepository.existsByEmail(userRequest.getEmail())) {
-
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body(new ErrorResponse("Usuário já existe"));
+            throw new UsuarioJaExisteException("Usuário já existe");
         }
 
         User user = this.modelMapper.map(userRequest, User.class);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        log.info("Password generated {}", user.getPassword());
-
         if (this.userRepository.save(user) != null) {
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(new TokenResponse(this.jwtService.geraToken(user.getEmail())));
+            return new TokenResponse(this.jwtService.geraToken(user.getEmail()));
         } else {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .build();
+            throw new RuntimeException("Ocorreu um erro desconhecido !");
         }
     }
 
     @GetMapping
-    public ResponseEntity<Set<UserDTO>> findAll(@RequestHeader String authorization) {
+    @ResponseStatus(HttpStatus.OK)
+    public Set<UserDTO> findAll(@RequestHeader String authorization) {
         this.jwtService.validaToken(authorization);
-
-        Set<UserDTO> users = this.userRepository.findAll()
+        return this.userRepository.findAll()
                 .stream()
                 .map(user -> this.modelMapper.map(user, UserDTO.class))
                 .collect(Collectors.toSet());
-
-        return ResponseEntity.ok(users);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<?> findById(@PathVariable(name = "id") Long id, @RequestHeader String authorization) {
+    @ResponseStatus(HttpStatus.OK)
+    public UserDTO findById(@PathVariable(name = "id") Long id, @RequestHeader String authorization) {
         this.jwtService.validaToken(authorization);
 
         return this.userRepository.findById(id)
-                .map(user -> ResponseEntity.ok(this.modelMapper.map(user, UserDTO.class)))
-                .orElseThrow(() -> new RuntimeException(""));
+                .map(user -> this.modelMapper.map(user, UserDTO.class))
+                .orElseThrow(() -> new NotFoundException("Usuário não existe"));
     }
 
     @DeleteMapping("me")
-    public ResponseEntity<?> delete(@RequestHeader String authorization) {
-        DecodedJWT jwt = this.jwtService.decodeToken(authorization);
-        String emailUsuarioAutenticado = jwt.getClaim("email").asString();
-        this.userRepository.deleteByEmail(emailUsuarioAutenticado);
-
-        return ResponseEntity.noContent().build();
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@RequestHeader String authorization) {
+        this.userRepository.deleteByEmail(jwtService.getEmailFromToken(authorization));
     }
 }
