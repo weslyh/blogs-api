@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -99,14 +100,20 @@ public class PostController {
     @GetMapping("/search")
     public ResponseEntity<List<BlogPostDTO>> atualizaPost(@RequestParam String q,
                                                     @RequestHeader String authorization) {
-
         this.jwtService.validaToken(authorization);
+        List<BlogPost> blogs;
 
-        List<BlogPostDTO> blogs = this.blogPostRepository.findAllByTitleOrContentContaining(q)
-                .stream()
-                .map(BlogPost::toDTO)
-                .collect(Collectors.toList());
+        if (q == null || q.isEmpty()) {
+            blogs = this.blogPostRepository.findAll();
+        } else {
+            blogs = this.blogPostRepository.findAllByTitleOrContentContaining(q);
+        }
 
-        return ResponseEntity.ok(blogs);
+        return ResponseEntity.ok(
+                blogs
+                        .stream()
+                        .map(BlogPost::toDTO)
+                        .collect(Collectors.toList())
+        );
     }
 }
