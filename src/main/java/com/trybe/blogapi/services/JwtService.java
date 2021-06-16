@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 public interface JwtService {
 
     String geraToken(String email);
-    boolean validaToken(String token);
+    void validaToken(String token);
     DecodedJWT decodeToken(String token);
+    String getEmailFromToken(String token);
 }

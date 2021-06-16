@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -78,13 +77,10 @@ public class PostController {
     public ResponseEntity<BlogPostDTO> atualizaPost(@PathVariable(name = "id") Long id,
                                                     @RequestBody BlogPostRequest blogPostRequest,
                                                     @RequestHeader String authorization) {
-        DecodedJWT jwt = this.jwtService.decodeToken(authorization);
-        String email = jwt.getClaim("email").asString();
-
         Optional<BlogPost> blogPost = this.blogPostRepository.findById(id);
 
         if (blogPost.isPresent()) {
-            if (!blogPost.get().getUser().getEmail().equals(email)) {
+            if (!blogPost.get().getUser().getEmail().equals(this.jwtService.getEmailFromToken(authorization))) {
                 throw new RuntimeException("Usuário não tem permissão para editar o post.");
             } else {
                 blogPost.get().setTitle(blogPostRequest.getTitle());
@@ -98,8 +94,7 @@ public class PostController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<BlogPostDTO>> atualizaPost(@RequestParam String q,
-                                                    @RequestHeader String authorization) {
+    public ResponseEntity<List<BlogPostDTO>> atualizaPost(@RequestParam String q, @RequestHeader String authorization) {
         this.jwtService.validaToken(authorization);
         List<BlogPost> blogs;
 
@@ -115,5 +110,21 @@ public class PostController {
                         .map(BlogPost::toDTO)
                         .collect(Collectors.toList())
         );
+    }
+
+    @DeleteMapping("{id}")
+    public void deletaPost(@PathVariable(name = "id") Long id, @RequestHeader String authorization) {
+        this.jwtService.validaToken(authorization);
+        Optional<BlogPost> blogPost = this.blogPostRepository.findById(id);
+
+        if (blogPost.isPresent()) {
+            if (blogPost.get().isUsuarioDetentorDoPost(this.jwtService.getEmailFromToken(authorization))) {
+                this.blogPostRepository.deleteById(id);
+            } else {
+                throw new RuntimeException("Usuário não é detentor do post");
+            }
+        } else {
+            throw new RuntimeException("Not found");
+        }
     }
 }

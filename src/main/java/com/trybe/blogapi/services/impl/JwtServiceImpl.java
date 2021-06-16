@@ -28,13 +28,11 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public boolean validaToken(String token) {
+    public void validaToken(String token) {
         if (token == null || token.isEmpty())
             throw new RuntimeException("Token não encontrado");
 
         decodeToken(token);
-
-        return true;
     }
 
     @Override
@@ -52,5 +50,11 @@ public class JwtServiceImpl implements JwtService {
         } catch (JWTVerificationException exception) {
             throw new RuntimeException("Token Invalido");
         }
+    }
+
+    @Override
+    public String getEmailFromToken(String token) {
+        DecodedJWT jwt = decodeToken(token);
+        return jwt.getClaim("email").asString();
     }
 }

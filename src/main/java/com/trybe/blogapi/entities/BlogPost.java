@@ -52,4 +52,8 @@ public class BlogPost {
 
         return blogPostDTO;
     }
+
+    public boolean isUsuarioDetentorDoPost(String email) {
+        return this.user.getEmail().equals(email);
+    }
 }
