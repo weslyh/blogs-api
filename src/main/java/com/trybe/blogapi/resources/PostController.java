@@ -1,6 +1,5 @@
 package com.trybe.blogapi.resources;
 
-import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.trybe.blogapi.entities.BlogPost;
 import com.trybe.blogapi.entities.User;
@@ -95,5 +94,19 @@ public class PostController {
         } else {
             throw new RuntimeException("Blog post não existe !");
         }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<BlogPostDTO>> atualizaPost(@RequestParam String q,
+                                                    @RequestHeader String authorization) {
+
+        this.jwtService.validaToken(authorization);
+
+        List<BlogPostDTO> blogs = this.blogPostRepository.findAllByTitleOrContentContaining(q)
+                .stream()
+                .map(BlogPost::toDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(blogs);
     }
 }
