@@ -80,7 +80,7 @@ public class PostController {
         Optional<BlogPost> blogPost = this.blogPostRepository.findById(id);
 
         if (blogPost.isPresent()) {
-            if (!blogPost.get().getUser().getEmail().equals(this.jwtService.getEmailFromToken(authorization))) {
+            if (!blogPost.get().isUsuarioDetentorDoPost(this.jwtService.getEmailFromToken(authorization))) {
                 throw new RuntimeException("Usuário não tem permissão para editar o post.");
             } else {
                 blogPost.get().setTitle(blogPostRequest.getTitle());
