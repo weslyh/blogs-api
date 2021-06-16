@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsuarioJaExisteException.class)
     public ResponseEntity<ErrorResponse> handleUsuarioJaExisteException(UsuarioJaExisteException usuarioJaExisteException) {
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
+                .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse(usuarioJaExisteException.getMessage()));
     }
 
