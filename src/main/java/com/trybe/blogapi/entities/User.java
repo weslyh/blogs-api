@@ -27,4 +27,13 @@ public class User {
     @OneToMany(mappedBy = "user")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<BlogPost> blogPosts;
+
+    public User(Long id) {
+        this.id = id;
+    }
+
+    public User(Long id, String email) {
+        this.id = id;
+        this.email = email;
+    }
 }

@@ -2,6 +2,8 @@ package com.trybe.blogapi.entities;
 
 import com.trybe.blogapi.entities.dtos.BlogPostDTO;
 import com.trybe.blogapi.entities.dtos.UserDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,11 +14,19 @@ import java.time.LocalDateTime;
 @Table(name = "Posts")
 @NoArgsConstructor
 @Data
+@Builder
+@AllArgsConstructor
 public class BlogPost {
 
     public BlogPost(String title, String content) {
         this.title = title;
         this.content = content;
+    }
+
+    public BlogPost(String title, String content, User user) {
+        this.title = title;
+        this.content = content;
+        this.user = user;
     }
 
     @Id

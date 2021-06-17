@@ -31,6 +31,7 @@ public class PostController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BlogPostSaveResponse save(@Valid @RequestBody BlogPostRequest blogPostRequest, @RequestHeader String authorization) {
+        this.jwtService.validaToken(authorization);
         Optional<User> user = this.userRepository.findByEmail(jwtService.getEmailFromToken(authorization));
 
         if (user.isPresent()) {
@@ -67,7 +68,7 @@ public class PostController {
 
     @PutMapping("{id}")
     @ResponseStatus(HttpStatus.OK)
-    public BlogPostDTO atualizaPost(@PathVariable(name = "id") Long id,
+    public BlogPostSaveResponse atualizaPost(@PathVariable(name = "id") Long id,
                                                     @RequestBody BlogPostRequest blogPostRequest,
                                                     @RequestHeader String authorization) {
         Optional<BlogPost> blogPost = this.blogPostRepository.findById(id);
@@ -79,7 +80,9 @@ public class PostController {
                 blogPost.get().setTitle(blogPostRequest.getTitle());
                 blogPost.get().setContent(blogPostRequest.getContent());
 
-                return this.blogPostRepository.save(blogPost.get()).toDTO();
+                return Optional.ofNullable(this.blogPostRepository.save(blogPost.get()))
+                        .map(BlogPostSaveResponse::new)
+                        .get();
             }
         } else {
             throw new NotFoundException("Post não existe");
@@ -88,7 +91,7 @@ public class PostController {
 
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
-    public List<BlogPostDTO> atualizaPost(@RequestParam String q, @RequestHeader String authorization) {
+    public List<BlogPostDTO> searchPost(@RequestParam String q, @RequestHeader String authorization) {
         this.jwtService.validaToken(authorization);
         List<BlogPost> blogs;
 
