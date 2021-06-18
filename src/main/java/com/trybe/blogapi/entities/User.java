@@ -1,8 +1,6 @@
 package com.trybe.blogapi.entities;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -13,6 +11,8 @@ import java.util.Set;
 @Table(name = "Users")
 @NoArgsConstructor
 @Data
+@Builder
+@AllArgsConstructor
 public class User {
 
     @Id
